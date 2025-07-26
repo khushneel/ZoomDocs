@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import './App.css'
-import './User-View/Pages/Theam.css'
+import './User-View/Pages/Theme.css'
 import AppRouter from './User-View/User-View-Routes/Router'
 import { ThemeProvider } from './contexts/ThemeContext'
 import { useAppDispatch, useAppSelector } from './store/hooks'
-import { generateUserAsync, checkUserAsync } from './store/userSlice'
+import { checkUserAsync, generateUserAsync } from './store/userSlice'
 
 function App() {
   const dispatch = useAppDispatch();

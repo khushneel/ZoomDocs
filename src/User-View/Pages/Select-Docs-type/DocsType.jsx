@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../contexts/ThemeContext";
 import SideBarCom from "../../Component/SideBar";
 import { getDocumentTypes } from "../../User-View-Api";
-import { useTheme } from "../../../contexts/ThemeContext";
 import "./DocsType.css";
 
 export default function DocsType() {
@@ -88,10 +88,10 @@ export default function DocsType() {
 
   return (
     <div
-      className={`dashboard-layout ${isDarkMode ? "dark-mode" : "light-mode"}`}
+      className={`dashboard-layout ${isDarkMode ? "" : "light-mode"}`}
     >
       <SideBarCom isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
-      <div className="dashboard-main">
+      <div className={`dashboard-main ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
         {/* Floating particles background */}
         <div className="particles-container">
           {[...Array(20)].map((_, i) => (
@@ -99,7 +99,7 @@ export default function DocsType() {
           ))}
         </div>
 
-        {/* Professional Theme Toggle Button */}
+        {/* Enhanced Theme Toggle Button */}
         <div
           className="theme-toggle"
           onClick={toggleTheme}
@@ -117,23 +117,12 @@ export default function DocsType() {
             ></i>
           </div>
         </div>
-        {/* 
-        <img
-          src="https://ervjukxdjbtpcfpbhzqh.supabase.co/storage/v1/object/public/zoomdocs-gautam-version//zoomdocs_black_white.png"
-          alt="Logo"
-          className="responsive-logo"
-        /> */}
+ 
 
-        <div className="docstype-card card">
+        <div className="docstype-card">
           <div className="card-header">
-            <div className="header-glow"></div>
             <h2>
               <span className="gradient-text">Generate Legal Document</span>
-              <div className="typing-indicator">
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-              </div>
             </h2>
             <p className="subtitle">
               <i className="fas fa-rocket"></i>
@@ -149,11 +138,14 @@ export default function DocsType() {
             </label>
             <div className="custom-dropdown" ref={typeDropdownRef}>
               <div
-                className={`dropdown-selected input-field ${
+                className={`dropdown-selected ${
                   selectedType !== "Select" ? "selected" : ""
                 }`}
                 onClick={() => setShowTypeDropdown((prev) => !prev)}
                 tabIndex={0}
+                role="button"
+                aria-expanded={showTypeDropdown}
+                aria-haspopup="listbox"
               >
                 {selectedType}
                 <span
@@ -163,17 +155,18 @@ export default function DocsType() {
                 </span>
               </div>
               {showTypeDropdown && (
-                <div className="dropdown-options">
+                <div className="dropdown-options" role="listbox">
                   {documentTypes.map((type, index) => (
                     <div
                       key={type.value}
                       className="dropdown-option"
                       onClick={() => handleTypeSelect(type)}
+                      role="option"
+                      tabIndex={0}
                       style={{ animationDelay: `${index * 0.05}s` }}
                     >
-                      <i className={type.icon} style={{ marginRight: 8 }}></i>
+                      <i className={type.icon}></i>
                       <span>{type.label}</span>
-                      <div className="option-hover-effect"></div>
                     </div>
                   ))}
                 </div>
@@ -187,11 +180,14 @@ export default function DocsType() {
             </label>
             <div className="custom-dropdown" ref={formatDropdownRef}>
               <div
-                className={`dropdown-selected input-field ${
+                className={`dropdown-selected ${
                   selectedFormat !== "Select" ? "selected" : ""
                 }`}
                 onClick={() => setShowFormatDropdown((prev) => !prev)}
                 tabIndex={0}
+                role="button"
+                aria-expanded={showFormatDropdown}
+                aria-haspopup="listbox"
               >
                 {selectedFormat}
                 <span
@@ -203,35 +199,32 @@ export default function DocsType() {
                 </span>
               </div>
               {showFormatDropdown && (
-                <div className="dropdown-options">
+                <div className="dropdown-options" role="listbox">
                   <div
                     className="dropdown-option"
                     onClick={() => handleFormatSelect("PDF")}
+                    role="option"
+                    tabIndex={0}
                   >
-                    <i
-                      className="fas fa-file-pdf"
-                      style={{ marginRight: 8, color: "#ff4444" }}
-                    ></i>
+                    <i className="fas fa-file-pdf"></i>
                     <span>PDF</span>
-                    <div className="option-hover-effect"></div>
                   </div>
                 </div>
               )}
             </div>
 
             {error && (
-              <div className="error-message">
+              <div className="error-message" role="alert">
                 <i className="fas fa-exclamation-triangle"></i>
                 {error}
               </div>
             )}
 
             <button
-              className={`deploy-btn btn-primary ${
-                isGenerating ? "generating" : ""
-              }`}
+              className={`deploy-btn ${isGenerating ? "generating" : ""}`}
               onClick={handleDeploy}
               disabled={isGenerating}
+              aria-describedby={error ? "error-message" : undefined}
             >
               {isGenerating ? (
                 <>
@@ -244,7 +237,6 @@ export default function DocsType() {
                   <span>Generate Document</span>
                 </>
               )}
-              <div className="btn-shine"></div>
             </button>
           </div>
 
@@ -264,16 +256,20 @@ export default function DocsType() {
           className="login-avatar"
           onClick={handleAvatarClick}
           title="Sign In / Sign Up"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              handleAvatarClick();
+            }
+          }}
         >
           <div className="avatar-container">
             <div className="avatar-icon">
               <i className="fas fa-user"></i>
             </div>
-            <div className="avatar-text">
-              <span className="login-text">Login</span>
-            </div>
+            <div className="avatar-text">Login</div>
           </div>
-          <div className="avatar-glow"></div>
         </div>
       </div>
     </div>

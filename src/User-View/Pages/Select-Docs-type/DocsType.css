@@ -1,6 +1,44 @@
-/* Apple Liquid Glass Design - DocsType Component */
+/* --- Root Variables for Liquid Glass Theme --- */
+:root {
+  /* Dark Mode Colors */
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --bg-tertiary: #2a2a2a;
+  --bg-glass: rgba(30, 30, 30, 0.85);
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-muted: #707070;
+  --border-color: rgba(255, 255, 255, 0.15);
+  --border-hover: rgba(255, 255, 255, 0.25);
+  --border-highlight: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  --accent-primary: #007aff;
+  --accent-soft: rgba(0, 122, 255, 0.15);
+  --error-color: #ff453a;
+  --shadow-glass: 0 16px 40px rgba(0, 0, 0, 0.37);
+  --shadow-glass-hover: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-button: 0 8px 24px rgba(0, 122, 255, 0.2);
+  --shadow-button-hover: 0 12px 40px rgba(0, 122, 255, 0.3);
+}
 
-/* Dashboard Layout */
+.light-mode {
+  /* Light Mode Colors */
+  --bg-primary: #f0f2f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f5f5f5;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #8a8a8e;
+  --border-color: rgba(0, 0, 0, 0.12);
+  --border-hover: rgba(0, 0, 0, 0.2);
+  --border-highlight: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+  --shadow-glass: 0 16px 40px rgba(0, 0, 0, 0.12);
+  --shadow-glass-hover: 0 20px 50px rgba(0, 0, 0, 0.18);
+  --shadow-button: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-button-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced Dashboard Layout with Animated Aurora Background */
 .dashboard-layout {
   min-height: 100vh;
   background: var(--bg-primary);
@@ -8,6 +46,27 @@
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
+  background:
+    radial-gradient(at 20% 25%, hsla(212, 90%, 60%, 0.08) 0px, transparent 50%),
+    radial-gradient(at 78% 35%, hsla(260, 90%, 60%, 0.08) 0px, transparent 50%),
+    radial-gradient(at 50% 80%, hsla(340, 90%, 60%, 0.08) 0px, transparent 50%),
+    var(--bg-primary);
+  animation: liquid-flow 25s infinite linear;
+}
+
+.light-mode .dashboard-layout {
+  background:
+    radial-gradient(at 20% 25%, hsla(212, 90%, 60%, 0.03) 0px, transparent 50%),
+    radial-gradient(at 78% 35%, hsla(260, 90%, 60%, 0.03) 0px, transparent 50%),
+    radial-gradient(at 50% 80%, hsla(340, 90%, 60%, 0.03) 0px, transparent 50%),
+    var(--bg-primary);
+}
+
+@keyframes liquid-flow {
+  0% { background-position: 0% 50%, 0% 50%, 0% 50%; }
+  33% { background-position: 30% 60%, 70% 40%, 20% 80%; }
+  66% { background-position: 70% 30%, 20% 70%, 80% 20%; }
+  100% { background-position: 0% 50%, 0% 50%, 0% 50%; }
 }
 
 .dashboard-main {
@@ -24,34 +83,40 @@
   margin-left: 80px;
 }
 
-/* Remove particles - clean design */
 .particles-container {
   display: none;
 }
 
-/* Logo */
+/* Enhanced Logo */
 .responsive-logo {
   width: 180px;
   height: auto;
   margin-bottom: 3rem;
-  opacity: 0.9;
-  transition: opacity 0.3s ease;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
 .responsive-logo:hover {
   opacity: 1;
+  transform: scale(1.05) translateY(-2px);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
 }
 
-/* Main Card - Apple Liquid Glass */
+.light-mode .responsive-logo {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.05));
+}
+
+/* Enhanced Main Card - Apple Liquid Glass */
 .docstype-card {
   width: 100%;
   max-width: 520px;
   background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
   border: 1px solid var(--border-color);
-  border-radius: 24px;
-  padding: 2rem;
+  border-radius: 24px; /* More rounded to match sidebar */
+  padding: 2.5rem; /* Slightly more padding */
   box-shadow: var(--shadow-glass);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -64,40 +129,60 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 1px;
-  background: var(--border-highlight);
-  opacity: 0.5;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, var(--border-highlight), transparent);
+  opacity: 0.8;
+}
+
+.docstype-card::after {
+  content: '';
+  position: absolute;
+  top: -150px;
+  left: -150px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
 .docstype-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px) scale(1.02);
   box-shadow: var(--shadow-glass-hover);
   border-color: var(--border-hover);
 }
 
-/* Card Header */
+.docstype-card:hover::after {
+  opacity: 1;
+}
+
+/* Enhanced Card Header */
 .card-header {
   text-align: center;
   margin-bottom: 2rem;
 }
 
 .card-header h2 {
-  font-size: 1.75rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.light-mode .card-header h2 {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .gradient-text {
   background: none;
   color: var(--text-primary);
-  background-clip: text;
-  -webkit-background-clip: text;
 }
 
 .typing-indicator {
-  display: none; /* Remove animation for clean design */
+  display: none;
 }
 
 .subtitle {
@@ -142,7 +227,7 @@
   font-size: 0.8rem;
 }
 
-/* Custom Dropdown - Apple Style */
+/* Enhanced Custom Dropdown */
 .custom-dropdown {
   position: relative;
   width: 100%;
@@ -150,42 +235,27 @@
 
 .dropdown-selected {
   padding: 1rem 1.25rem;
-  background: var(--bg-glass);
-  border: 1.5px solid var(--border-color);
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)), var(--bg-glass);
+  border: 1.5px solid var(--border-color); /* Thicker border like form inputs */
+  border-radius: 14px; /* Match button radius */
   color: var(--text-primary);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   position: relative;
   overflow: hidden;
-}
-
-.dropdown-selected::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--accent-soft);
-  opacity: 0;
-  transition: opacity 0.2s ease;
 }
 
 .dropdown-selected:hover {
   border-color: var(--border-hover);
   transform: translateY(-1px);
-}
-
-.dropdown-selected:hover::before {
-  opacity: 1;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)), var(--bg-glass);
 }
 
 .dropdown-selected.selected {
@@ -194,10 +264,8 @@
 }
 
 .dropdown-arrow {
-  transition: transform 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--text-muted);
-  position: relative;
-  z-index: 2;
 }
 
 .dropdown-arrow.open {
@@ -208,105 +276,96 @@
   font-size: 0.8rem;
 }
 
-/* Dropdown Options */
+/* Enhanced Dropdown Options */
 .dropdown-options {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: black;
-  backdrop-filter: blur(1000px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--bg-secondary);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 14px; /* Match dropdown button */
   box-shadow: var(--shadow-glass);
   z-index: 1000;
   max-height: 200px;
   overflow-y: auto;
   padding: 0.5rem 0;
 }
-.light-mode .dropdown-options{
-    background: white;
+
+.light-mode .dropdown-options {
+  background: var(--bg-secondary);
 }
+
 .dropdown-option {
   padding: 0.75rem 1.25rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   color: var(--text-primary);
   font-weight: 500;
-  position: relative;
-  overflow: hidden;
-}
-
-.dropdown-option::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--accent-soft);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  background: transparent;
+  border: none;
+  font-size: 0.95rem;
 }
 
 .dropdown-option:hover {
-  background: var(--bg-tertiary);
+  background: var(--accent-soft);
   color: var(--text-primary);
-}
-
-.dropdown-option:hover::before {
-  opacity: 1;
+  transform: translateX(4px) scale(1.01);
 }
 
 .dropdown-option i {
   margin-right: 0.75rem;
   width: 16px;
   text-align: center;
+  color: var(--text-secondary);
 }
 
-.option-hover-effect {
-  display: none;
+.dropdown-option:hover i {
+  color: var(--accent-primary);
 }
 
-/* Deploy Button - Apple Style */
+/* Enhanced Deploy Button - Match Button System */
 .deploy-btn {
   width: 100%;
-  padding: 1rem 2rem;
-  background: var(--accent-primary);
+  padding: 16px 24px; /* Match other buttons */
+  background: linear-gradient(135deg, var(--accent-primary), hsl(from var(--accent-primary) h s l+8));
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px; /* Match button system */
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-button);
 }
 
+/* Enhanced button shine effect */
 .deploy-btn::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.1);
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 60%);
+  transform: translate(-50%, -50%);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.4s ease;
 }
 
 .deploy-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.02);
   box-shadow: var(--shadow-button-hover);
 }
 
@@ -315,21 +374,20 @@
 }
 
 .deploy-btn:active {
-  transform: translateY(0);
+  transform: translateY(-1px) scale(1);
   transition: transform 0.1s ease;
 }
 
 .deploy-btn.generating {
   opacity: 0.8;
   cursor: not-allowed;
+  transform: none;
 }
 
 .deploy-btn i {
-  font-size: 0.9rem;
-}
-
-.btn-shine {
-  display: none;
+  font-size: 1rem;
+  position: relative;
+  z-index: 2;
 }
 
 /* Loading Spinner */
@@ -347,25 +405,37 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Error Message */
+/* Enhanced Error Message */
 .error-message {
   background: var(--bg-glass);
   border: 1px solid var(--error-color);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
+  border-radius: 14px; /* Match other elements */
+  padding: 1rem 1.25rem;
   color: var(--error-color);
   font-size: 0.9rem;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: -0.5rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  margin-top: 1rem;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  animation: errorSlideIn 0.3s ease-out;
 }
 
 .error-message i {
   font-size: 0.8rem;
+}
+
+@keyframes errorSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Card Footer */
@@ -394,16 +464,16 @@
   font-size: 0.8rem;
 }
 
-/* Login Avatar */
+/* Enhanced Login Avatar */
 .login-avatar {
   position: fixed;
   top: 1.4rem;
   right: 2rem;
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
   border: 1px solid var(--border-color);
   border-radius: 50%;
   display: flex;
@@ -440,10 +510,31 @@
   font-weight: 500;
 }
 
-.avatar-glow {
-  display: none;
+/* Enhanced Scrollbar for dropdown */
+.dropdown-options::-webkit-scrollbar {
+  width: 6px;
 }
 
+.dropdown-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Focus states for accessibility */
+.dropdown-selected:focus-visible,
+.deploy-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -459,6 +550,7 @@
   .docstype-card {
     padding: 2rem;
     margin: 1rem 0;
+    border-radius: 20px;
   }
   
   .responsive-logo {
@@ -466,45 +558,30 @@
     margin-bottom: 2rem;
   }
   
-  .theme-toggle {
-    top: 1rem;
-    right: 1rem;
-    width: 48px;
-    height: 24px;
-  }
-  
-  .theme-toggle-slider {
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
-  }
-  
-  .light-mode .theme-toggle-slider {
-    transform: translateX(24px);
-  }
-  
   .login-avatar {
-    bottom: 1rem;
+    top: 1rem;
     right: 1rem;
     width: 50px;
     height: 50px;
   }
+  
+  .deploy-btn {
+    padding: 14px 20px;
+  }
 }
 
-/* Smooth scrollbar for dropdown */
-.dropdown-options::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dropdown-options::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.dropdown-options::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-.dropdown-options::-webkit-scrollbar-thumb:hover {
-  background: var(--border-hover);
+@media (max-width: 480px) {
+  .docstype-card {
+    padding: 1.5rem;
+    border-radius: 18px;
+  }
+  
+  .card-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .deploy-btn {
+    padding: 12px 18px;
+    font-size: 0.9rem;
+  }
 }
