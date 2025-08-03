@@ -116,7 +116,7 @@ export default function SideBarCom({ isCollapsed, onToggle }) {
 			<div className="sidebar-header">
 				{!isCollapsed ? (
 					<img
-						src="https://ervjukxdjbtpcfpbhzqh.supabase.co/storage/v1/object/public/zoomdocs-gautam-version//zoomdocs_black_white.png"
+						src="https://darbdtgqhhdgvgarjlxf.supabase.co/storage/v1/object/public/zoomdocs-ai-storage/assets/zoomdocs_black_white.png"
 						alt="ZoomDocs AI Logo"
 						className="sidebar-logo"
 						onClick={handleLogoClick}
@@ -126,7 +126,7 @@ export default function SideBarCom({ isCollapsed, onToggle }) {
 				) : (
 					<div className="collapsed-logo-container">
 						<img
-							src="https://ervjukxdjbtpcfpbhzqh.supabase.co/storage/v1/object/public/zoomdocs-gautam-version//zoomdocs_black_white.png"
+							src="https://darbdtgqhhdgvgarjlxf.supabase.co/storage/v1/object/public/zoomdocs-ai-storage/assets/zoomdocs_black_white.png"
 							alt="ZoomDocs AI Logo"
 							className="collapsed-logo"
 							onClick={handleLogoClick}
