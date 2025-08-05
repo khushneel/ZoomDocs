@@ -3,6 +3,7 @@ import {
 	checkUser,
 	generateUser,
 	getCredits,
+	getGeneratedDocumentsList,
 	startUser,
 } from "../User-View/User-View-Api";
 
@@ -130,14 +131,48 @@ export const startUserAsync = createAsyncThunk(
 // Async thunk for getting user credits
 export const getCreditsAsync = createAsyncThunk(
 	"user/getCredits",
-	async ({ zoomdocs_auth_id, zoomdocs_user_id }, { rejectWithValue }) => {
+	async ({ zoomdocs_auth_id, zoomdocs_user_id }, { rejectWithValue, dispatch }) => {
 		try {
 			const response = await getCredits(
 				zoomdocs_auth_id,
 				zoomdocs_user_id
 			);
+			
+			// After successfully getting credits, fetch the generated documents list
+			dispatch(getGeneratedDocumentsListAsync({
+				zoomdocs_auth_id,
+				zoomdocs_user_id,
+				records: 3
+			}));
+			
 			return response.data;
 		} catch (error) {
+			return rejectWithValue(handleApiError(error));
+		}
+	}
+);
+
+// Async thunk for getting generated documents list
+export const getGeneratedDocumentsListAsync = createAsyncThunk(
+	"user/getGeneratedDocumentsList",
+	async ({ zoomdocs_auth_id, zoomdocs_user_id, records = 2 }, { rejectWithValue }) => {
+		try {
+			console.log("Fetching generated documents list with params:", {
+				zoomdocs_auth_id,
+				zoomdocs_user_id,
+				records
+			});
+			
+			const response = await getGeneratedDocumentsList(
+				zoomdocs_auth_id,
+				zoomdocs_user_id,
+				records
+			);
+			
+			console.log("Generated documents list response:", response.data);
+			return response.data;
+		} catch (error) {
+			console.error("Error fetching generated documents list:", error);
 			return rejectWithValue(handleApiError(error));
 		}
 	}
@@ -150,6 +185,7 @@ const getInitialState = () => {
 		zoomdocs_auth_id: storedData.zoomdocs_auth_id || null,
 		zoomdocs_user_id: storedData.zoomdocs_user_id || null,
 		credits: null,
+		generatedDocuments: null,
 		isLoading: false,
 		error: null,
 		isInitialized: false,
@@ -158,6 +194,7 @@ const getInitialState = () => {
 			checking: false,
 			starting: false,
 			fetchingCredits: false,
+			fetchingDocuments: false,
 		},
 	};
 };
@@ -170,6 +207,7 @@ const userSlice = createSlice({
 			state.zoomdocs_auth_id = null;
 			state.zoomdocs_user_id = null;
 			state.credits = null;
+			state.generatedDocuments = null;
 			state.error = null;
 			state.isInitialized = false;
 			state.loadingStates = {
@@ -177,6 +215,7 @@ const userSlice = createSlice({
 				checking: false,
 				starting: false,
 				fetchingCredits: false,
+				fetchingDocuments: false,
 			};
 			userStorage.clear();
 		},
@@ -276,6 +315,21 @@ const userSlice = createSlice({
 			.addCase(getCreditsAsync.rejected, (state, action) => {
 				state.isLoading = false;
 				state.loadingStates.fetchingCredits = false;
+				state.error = action.payload;
+			})
+
+			// Get Generated Documents List cases
+			.addCase(getGeneratedDocumentsListAsync.pending, (state) => {
+				state.loadingStates.fetchingDocuments = true;
+				state.error = null;
+			})
+			.addCase(getGeneratedDocumentsListAsync.fulfilled, (state, action) => {
+				state.loadingStates.fetchingDocuments = false;
+				state.generatedDocuments = action.payload;
+				state.error = null;
+			})
+			.addCase(getGeneratedDocumentsListAsync.rejected, (state, action) => {
+				state.loadingStates.fetchingDocuments = false;
 				state.error = action.payload;
 			});
 	},

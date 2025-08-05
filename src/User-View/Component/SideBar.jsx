@@ -2,37 +2,72 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import creditsIcon from "../../assets/Icons/Vector (1).png";
 import { useTheme } from "../../contexts/ThemeContext";
-import { useAppSelector } from "../../store/hooks";
+import { useAppSelector, useAppDispatch } from "../../store/hooks";
 import "./SideBar.css";
 
 export default function SideBarCom({ isCollapsed, onToggle }) {
 	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
 	const toggleRef = useRef(null);
 	const sidebarRef = useRef(null);
-	const { credits } = useAppSelector((state) => state.user);
+	const { 
+		credits, 
+		zoomdocs_auth_id, 
+		zoomdocs_user_id, 
+		generatedDocuments,
+		loadingStates 
+	} = useAppSelector((state) => state.user);
 	const { isDarkMode } = useTheme();
 	const [isCreditsLoading, setIsCreditsLoading] = useState(true);
 	const [isAnimating, setIsAnimating] = useState(false);
 	const [hoveredItem, setHoveredItem] = useState(null);
 
-	// Enhanced recent documents with better text handling
-	const recentDocuments = [
-		{
-			id: 1,
-			title: "Rental agreement march 2025",
-			date: "2 days ago",
-		},
-		{
-			id: 2,
-			title: "Legal notice for tax April - May",
-			date: "1 week ago",
-		},
-		{
-			id: 3,
-			title: "Rental agreement december 2024",
-			date: "2 weeks ago",
-		},
-	];
+	// Helper function to format document title from file_name
+	const formatDocumentTitle = (fileName, documentType) => {
+		if (!fileName) return 'Untitled Document';
+		
+		// Extract meaningful parts from file name
+		const parts = fileName.split('_');
+		const docType = documentType?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Document';
+		const date = parts[parts.length - 1]; // Get the date part
+		return `${docType} ${date}`;
+	};
+
+	// Helper function to format relative date
+	const formatRelativeDate = (dateString) => {
+		if (!dateString) return '';
+		
+		const date = new Date(dateString);
+		if (isNaN(date.getTime())) return '';
+		
+		const now = new Date();
+		const diffTime = Math.abs(now - date);
+		const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+		
+		if (diffDays === 0) return "Today";
+		if (diffDays === 1) return "1 day ago";
+		if (diffDays < 7) return `${diffDays} days ago`;
+		if (diffDays < 14) return "1 week ago";
+		if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+		return `${Math.ceil(diffDays / 30)} months ago`;
+	};
+
+	// Process generated documents for display
+	const recentDocuments = generatedDocuments?.documents?.documents ? 
+		generatedDocuments.documents.documents
+			.filter(doc => doc && doc.id) // Filter out invalid documents
+			.map(doc => {
+				return {
+					id: doc.id,
+					title: formatDocumentTitle(doc.file_name, doc.document_type),
+					date: formatRelativeDate(doc.generated_at),
+					fileName: doc.file_name,
+					documentType: doc.document_type,
+					filePath: doc.file_path_html,
+					// Store the complete original document data
+					originalDocumentData: doc
+				};
+			}) : [];
 
 	useEffect(() => {
 		const timer = setTimeout(
@@ -85,15 +120,30 @@ export default function SideBarCom({ isCollapsed, onToggle }) {
 		navigate("/");
 	}, [navigate]);
 
-	const handleGenerateClick = useCallback(() => {
-		navigate("/generate");
-	}, [navigate]);
+
 
 	const handleRecentItemClick = useCallback(
 		(documentId) => {
-			navigate(`/document/${documentId}`);
+			// Find the document data
+			const clickedDocument = recentDocuments.find(doc => doc.id === documentId);
+			
+			// Only log the original document data
+			if (clickedDocument && clickedDocument.originalDocumentData) {
+				console.log('=== ORIGINAL DOCUMENT DATA FROM SIDEBAR ===');
+				console.log('originalDocumentData:', clickedDocument.originalDocumentData);
+				console.log('=== END ORIGINAL DOCUMENT DATA ===');
+			}
+			
+			// Navigate to recent documents view with file path and pass originalDocumentData in state
+			if (clickedDocument && clickedDocument.originalDocumentData) {
+				// Extract file name from filePath for URL parameter
+				const fileName = clickedDocument.fileName || 'document';
+				navigate(`/View-Recent-Documents/${encodeURIComponent(fileName)}`, {
+					state: { originalDocumentData: clickedDocument.originalDocumentData }
+				});
+			}
 		},
-		[navigate]
+		[navigate, recentDocuments]
 	);
 
 	const handleGetMoreCredits = useCallback(() => {
@@ -160,7 +210,6 @@ export default function SideBarCom({ isCollapsed, onToggle }) {
 				<div className="sidebar-content">
 					<button
 						className="generate-btn"
-						onClick={handleGenerateClick}
 						onMouseEnter={() => handleItemHover("generate", true)}
 						onMouseLeave={() => handleItemHover("generate", false)}
 					>
@@ -180,36 +229,56 @@ export default function SideBarCom({ isCollapsed, onToggle }) {
 							></i>
 							Recent Documents
 						</div>
-						{recentDocuments.map((doc, index) => (
-							<div
-								key={doc.id}
-								className={`recent-item ${
-									hoveredItem === `recent-${doc.id}`
-										? "hovered"
-										: ""
-								}`}
-								onClick={() => handleRecentItemClick(doc.id)}
-								onMouseEnter={() =>
-									handleItemHover(`recent-${doc.id}`, true)
-								}
-								onMouseLeave={() =>
-									handleItemHover(`recent-${doc.id}`, false)
-								}
-								style={{
-									animationDelay: `${index * 0.1}s`,
-								}}
-							>
+						{loadingStates?.fetchingDocuments ? (
+							<div className="recent-item" style={{ opacity: 0.7 }}>
 								<div className="recent-dot"></div>
 								<div className="recent-content">
-									<div className="recent-title">
-										{doc.title}
-									</div>
-									<div className="recent-date">
-										{doc.date}
-									</div>
+									<div className="recent-title">Loading...</div>
+									<div className="recent-date">Please wait</div>
 								</div>
 							</div>
-						))}
+						) : recentDocuments && recentDocuments.length > 0 ? (
+							recentDocuments.slice(0, 5).map((doc, index) => {// Log what's being rendered
+								return (
+									<div
+										key={doc.id}
+										className={`recent-item ${
+											hoveredItem === `recent-${doc.id}`
+												? "hovered"
+												: ""
+										}`}
+										onClick={() => handleRecentItemClick(doc.id)}
+										onMouseEnter={() =>
+											handleItemHover(`recent-${doc.id}`, true)
+										}
+										onMouseLeave={() =>
+											handleItemHover(`recent-${doc.id}`, false)
+										}
+										style={{
+											animationDelay: `${index * 0.1}s`,
+										}}
+									>
+										<div className="recent-dot"></div>
+										<div className="recent-content">
+											<div className="recent-title">
+												{doc.fileName}
+											</div>
+											<div className="recent-date">
+												{formatRelativeDate(doc.generated_at)}
+											</div>
+										</div>
+									</div>
+								);
+							})
+						) : (
+							<div className="recent-item" style={{ opacity: 0.6 }}>
+								<div className="recent-dot"></div>
+								<div className="recent-content">
+									<div className="recent-title">No documents yet</div>
+									<div className="recent-date">Generate your first document</div>
+								</div>
+							</div>
+						)}
 					</div>
 
 					<div

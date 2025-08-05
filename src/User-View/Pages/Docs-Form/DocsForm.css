@@ -20,8 +20,9 @@
   flex-direction: column;
   max-width: 700px;
   margin: auto;
-  overflow-y: auto;
+  overflow: hidden;
   box-sizing: border-box;
+  min-height: 600px !important;
 }
 
 .dashboard-layout.sidebar-collapsed .docsform-main {
@@ -41,13 +42,551 @@
 .docsform-subtitle {
   color: var(--text-secondary);
   font-size: 0.95rem;
-  margin-bottom: 1.25rem;
   font-weight: 500;
   text-align: center;
   opacity: 0.8;
 }
 
+/* Enhanced Step Progress Indicator */
+.step-progress-container {
+    margin: 13px 10px 10px 10px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.step-indicators {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.step-indicator-wrapper {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.step-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    position: relative;
+    margin: 0 1rem;
+}
+
+.step-number {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 3px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-muted);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: var(--shadow-small);
+}
+
+.step-indicator.active .step-number {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border-color: var(--accent-primary);
+    color: white;
+    box-shadow: 0 8px 25px rgba(0, 122, 255, 0.4);
+    transform: scale(1.05);
+}
+
+.step-indicator.completed .step-number {
+    background: linear-gradient(135deg, var(--success-color), #22c55e);
+    border-color: var(--success-color);
+    color: white;
+    box-shadow: 0 6px 20px rgba(48, 209, 88, 0.3);
+}
+
+.step-indicator.upcoming .step-number {
+    background: var(--bg-glass);
+    border-color: var(--border-color);
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.step-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 120px;
+    line-height: 1.2;
+    transition: all 0.3s ease;
+}
+
+.step-indicator.active .step-label {
+    color: var(--accent-primary);
+    font-weight: 600;
+    transform: scale(1.02);
+}
+
+.step-indicator.completed .step-label {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.step-indicator.upcoming .step-label {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+.step-connector {
+    height: 4px;
+    background: var(--border-color);
+    flex: 1;
+    margin: 0 -1rem;
+    position: relative;
+    z-index: 1;
+    border-radius: 2px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.step-connector.completed {
+    background: linear-gradient(90deg, var(--success-color), var(--accent-primary));
+    box-shadow: 0 2px 8px rgba(48, 209, 88, 0.2);
+}
+
 /* Progress Bar */
+.progress-bar-container {
+    margin-top: 1.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.progress-step {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.progress-percent {
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+
+.step-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    letter-spacing: -0.02em;
+}
+
+.step-title i {
+    color: var(--accent-primary);
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+.step-description {
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+    color: var(--text-secondary);
+    opacity: 0.9;
+}
+
+/* Enhanced Form Styling */
+.docsform-header {
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.docsform-title {
+  font-size: 25px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.03em;
+}
+
+.docsform-subtitle {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    opacity: 0.9;
+}
+
+.docsform-field {
+    display: flex;
+    flex-direction: column;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 1; /* Make visible by default for debugging */
+    transform: translateY(0);
+    padding: 1px 7px 0px 7px;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.docsform-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.label-text {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.signature-badge {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    padding: 0.375rem 0.875rem;
+    border-radius: 12px;
+    font-size: 9px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    white-space: nowrap;
+    margin-left: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+    margin-bottom: 5px;
+}
+
+.signature-badge i {
+    font-size: 0.7rem;
+    
+}
+
+/* Tone Selector */
+.tone-selector {
+    display: grid;
+    gap: 1rem;
+}
+
+.tone-option {
+    background: var(--bg-glass);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    position: relative;
+    overflow: hidden;
+}
+
+.tone-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-highlight), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tone-option:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 122, 255, 0.15);
+}
+
+.tone-option:hover::before {
+    opacity: 0.8;
+}
+
+.tone-option.selected {
+    background: linear-gradient(135deg, var(--accent-soft), rgba(0, 122, 255, 0.08));
+    border-color: var(--accent-primary);
+    box-shadow: 0 8px 25px rgba(0, 122, 255, 0.25);
+    transform: translateY(-3px);
+}
+
+.tone-option.selected::before {
+    opacity: 1;
+}
+
+.tone-level {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.tone-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
+
+
+.docsform-back-btn {
+    background: var(--bg-glass);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.875rem 1.75rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: var(--shadow-small);
+}
+
+.docsform-back-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--border-hover);
+    transform: translateX(-3px) translateY(-1px);
+    box-shadow: var(--shadow-medium);
+}
+
+.docsform-next-btn,
+.docsform-proceed-btn {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border: none;
+    color: white;
+    padding: 0.875rem 1.75rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+    box-shadow: var(--shadow-button);
+    position: relative;
+    overflow: hidden;
+}
+
+.docsform-next-btn::before,
+.docsform-proceed-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 60%);
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.docsform-next-btn:hover::before,
+.docsform-proceed-btn:hover::before {
+    opacity: 1;
+}
+
+.docsform-next-btn:hover,
+.docsform-proceed-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-button-hover);
+}
+
+.docsform-proceed-btn {
+    background: linear-gradient(135deg, var(--success-color), #22c55e);
+    box-shadow: 0 8px 25px rgba(48, 209, 88, 0.3);
+}
+
+.docsform-proceed-btn:hover {
+    box-shadow: 0 12px 35px rgba(48, 209, 88, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .docsform-main {
+        padding: 1rem;
+        height: 100vh;
+    }
+    
+    .docsform-form {
+        height: 75vh;
+        padding: 1.5rem;
+    }
+    
+    .step-progress-container {
+        margin: 1rem 0 1.5rem 0;
+    }
+    
+    .step-indicators {
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .step-indicator-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .step-connector {
+        display: none;
+    }
+    
+    .step-number {
+        width: 25px;
+        height: 25px;
+        font-size: 9px;
+    }
+    
+    .step-label {
+        font-size: 0.8rem;
+        max-width: 100px;
+    }
+    
+    .docsform-title {
+        font-size: 1.75rem;
+    }
+    
+    .docsform-subtitle {
+        font-size: 1rem;
+    }
+    
+    .current-step-info {
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .step-title {
+        font-size: 1.25rem;
+    }
+    
+    .docsform-fields-container {
+        gap: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+    
+    .docsform-stepper-btns {
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: auto;
+        padding-top: 1.25rem;
+    }
+    
+    .docsform-next-btn,
+    .docsform-proceed-btn {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .progress-text {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .docsform-main {
+        padding: 0.75rem;
+    }
+    
+    .docsform-form {
+        height: 80vh;
+        padding: 1.25rem;
+    }
+    
+    .docsform-title {
+        font-size: 1.5rem;
+    }
+    
+    .step-indicators {
+        gap: 1rem;
+    }
+    
+    .step-number {
+        width: 35px;
+        height: 35px;
+        font-size: 0.8rem;
+    }
+    
+    .step-label {
+        font-size: 0.75rem;
+        max-width: 80px;
+    }
+    
+    .docsform-fields-container {
+        gap: 1rem;
+    }
+}
 .docsform-progress-bar-outer {
   position: relative;
   width: 100%;
@@ -97,12 +636,12 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-color);
   border-radius: 20px;
-  padding: 2rem;
+  padding: 1rem;
   box-shadow: var(--shadow-glass);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  flex: 1;
+  height: 70vh;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -119,36 +658,20 @@
   opacity: 0.5;
 }
 
-.docsform-form:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-glass-hover);
-}
+
 
 /* Form Grid Container */
 .docsform-fields-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 1.25rem;
   flex: 1;
   overflow-y: auto;
   padding-right: 0.5rem;
   margin-bottom: 1.5rem;
+  min-height: 0;
 }
 
-/* Form Fields */
-.docsform-field {
-  display: flex;
-  flex-direction: column;
-}
-
-.docsform-label {
-  display: block;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.01em;
-}
 
 .docsform-required {
   color: var(--error-color);
@@ -159,28 +682,23 @@
 /* Input Fields */
 .docsform-input,
 .docsform-textarea {
-  width: 100%;
-  padding: 0.875rem 1rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-sizing: border-box;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  flex: 1;
+     width: 100%;
+    margin-top: 10px;
+    padding: 9px 6px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    flex: 1;
+
 }
 
-.docsform-input:focus,
-.docsform-textarea:focus {
-  outline: none;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-  background: var(--bg-tertiary);
-}
 
 .docsform-input::placeholder,
 .docsform-textarea::placeholder {
@@ -224,24 +742,22 @@
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  padding-top: 0;
   flex-shrink: 0;
 }
 
 .docsform-back-btn,
 .docsform-next-btn,
 .docsform-proceed-btn {
-  padding: 0.875rem 2rem;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  min-width: 120px;
+     padding: 9px 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .docsform-back-btn {

@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../../../contexts/ThemeContext";
 import SideBarCom from "../../Component/SideBar";
-import { getDocumentTypes } from "../../User-View-Api";
+import { getDocumentTypes, helpMeDecide } from "../../User-View-Api";
+import toast from 'react-hot-toast';
 import "./DocsType.css";
 
 export default function DocsType() {
@@ -12,8 +13,11 @@ export default function DocsType() {
   const [selectedTypeLabel, setselectedTypeValue] = useState("");
   const [selectedFormat, setSelectedFormat] = useState("Select");
   const [documentTypes, setDocumentTypes] = useState([]);
-  const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showHelpBox, setShowHelpBox] = useState(false);
+  const [situation, setSituation] = useState("");
+  const [expectedOutcome, setExpectedOutcome] = useState("");
+  const [isDeciding, setIsDeciding] = useState(false);
   const navigate = useNavigate();
   const typeDropdownRef = useRef(null);
   const formatDropdownRef = useRef(null);
@@ -30,6 +34,7 @@ export default function DocsType() {
       })
       .catch((err) => {
         console.error("API Error:", err);
+        toast.error("Failed to load document types. Please refresh the page.");
       });
   }, []);
 
@@ -57,33 +62,110 @@ export default function DocsType() {
     setSelectedType(type.label);
     setselectedTypeValue(type.value);
     setShowTypeDropdown(false);
-    setError("");
   };
 
   const handleFormatSelect = (format) => {
     setSelectedFormat(format);
     setShowFormatDropdown(false);
-    setError("");
   };
 
   const handleDeploy = () => {
     if (selectedType === "Select" || selectedFormat === "Select") {
-      setError("Please select both document type and output format.");
+      toast.error("Please select both document type and output format.");
       return;
     }
-    setError("");
     setIsGenerating(true);
 
     // Simulate generation process
     setTimeout(() => {
-      const urlDocType = selectedTypeLabel.replace(/\s+/g, "-");
-      navigate(`/${urlDocType}`);
+      // Always navigate to /refund_request_letter/Template
+      navigate("/refund_request_letter/Template");
       setIsGenerating(false);
     }, 2000);
   };
 
   const handleAvatarClick = () => {
     navigate("/SignUp");
+  };
+
+  const handleAiDecision = async () => {
+    if (!situation.trim() || !expectedOutcome.trim()) {
+      toast.error("Please fill in both fields before using AI decision.");
+      return;
+    }
+
+    setIsDeciding(true);
+
+    try {
+      // Get auth data from localStorage
+      const zoomdocs_auth_id = localStorage.getItem("zoomdocs_auth_id");
+      const zoomdocs_user_id = localStorage.getItem("zoomdocs_user_id");
+
+      if (!zoomdocs_auth_id || !zoomdocs_user_id) {
+        toast.error("User authentication required. Please refresh the page.");
+        setIsDeciding(false);
+        return;
+      }
+
+      const help_me_decide_inputs = {
+        describe_the_situation: situation,
+        what_do_you_expect: expectedOutcome,
+      };
+
+      console.log('Making AI decision request with:', {
+        zoomdocs_auth_id,
+        zoomdocs_user_id,
+        help_me_decide_inputs
+      });
+
+      const response = await helpMeDecide(
+        zoomdocs_auth_id,
+        zoomdocs_user_id,
+        help_me_decide_inputs
+      );
+
+      console.log('AI Decision Response:', response.data);
+      
+      // Process the response and auto-select recommended document type
+      if (response.data && response.data.recommendations && response.data.recommendations.document_type) {
+        const recommendedDocType = response.data.recommendations.document_type;
+        
+        // Find exact match first
+        let recommendedType = documentTypes.find(
+          type => type.value === recommendedDocType
+        );
+        
+        // If no exact match, try to find similar matches
+        if (!recommendedType) {
+          recommendedType = documentTypes.find(
+            type => type.value.includes(recommendedDocType) || 
+                   recommendedDocType.includes(type.value) ||
+                   type.label.toLowerCase().includes(recommendedDocType.replace('_', ' ')) ||
+                   recommendedDocType.replace('_', ' ').includes(type.label.toLowerCase())
+          );
+        }
+        
+        if (recommendedType) {
+          handleTypeSelect(recommendedType);
+          console.log(`Auto-selected document type: ${recommendedType.label} (${recommendedType.value})`);
+        } else {
+          console.log(`No matching document type found for recommendation: ${recommendedDocType}`);
+        }
+      }
+
+      // Close the help box after successful response
+      setShowHelpBox(false);
+      
+      // Show success message with justification if available
+      const justification = response.data?.recommendations?.justification || 'AI recommendation completed.';
+      toast.success(`AI Recommendation: ${justification}`);
+      
+    } catch (err) {
+      console.error("AI Decision Error:", err);
+      toast.error("Failed to get AI recommendation. Please try again.");
+    } finally {
+      setIsDeciding(false);
+    }
   };
 
   return (
@@ -131,11 +213,20 @@ export default function DocsType() {
           </div>
 
           <div className="form-section">
-            <label>
-              <i className="fas fa-file-alt"></i>
-              Select document type
-              <span className="required">*</span>
-            </label>
+            <div className="form-row-space-between">
+              <label className="form-label-inline">
+                <i className="fas fa-file-alt"></i>
+                Select document type
+                <span className="required">*</span>
+              </label>
+              <button
+                type="button"
+                className="help-me-decide-btn"
+                onClick={() => setShowHelpBox((prev) => !prev)}
+              >
+                Help me decide
+              </button>
+            </div>
             <div className="custom-dropdown" ref={typeDropdownRef}>
               <div
                 className={`dropdown-selected ${
@@ -213,18 +304,10 @@ export default function DocsType() {
               )}
             </div>
 
-            {error && (
-              <div className="error-message" role="alert">
-                <i className="fas fa-exclamation-triangle"></i>
-                {error}
-              </div>
-            )}
-
             <button
               className={`deploy-btn ${isGenerating ? "generating" : ""}`}
               onClick={handleDeploy}
               disabled={isGenerating}
-              aria-describedby={error ? "error-message" : undefined}
             >
               {isGenerating ? (
                 <>
@@ -251,6 +334,52 @@ export default function DocsType() {
             </div>
           </div>
         </div>
+        {showHelpBox && (
+          <div className="Help-me-decide-box">
+            <h2 className="help-title">ZoomDocs AI</h2>
+            <p className="help-desc-main">
+              Not sure what document you need for your situation?
+            </p>
+            <p className="help-desc-sub">
+              ZoomDocs AI will help you decide!
+            </p>
+            <div className="help-form-fields">
+              <label className="help-label">Describe your situation</label>
+              <input
+                type="text"
+                className="input-field"
+                value={situation}
+                onChange={e => setSituation(e.target.value)}
+                placeholder="E.g. I need a contract for freelance work..."
+              />
+              <label className="help-label">What do you expect the outcome from this document should be?</label>
+              <input
+                type="text"
+                className="input-field"
+                value={expectedOutcome}
+                onChange={e => setExpectedOutcome(e.target.value)}
+                placeholder="E.g. Ensure payment terms are clear..."
+              />
+            </div>
+            <button
+              className={`deploy-btn help-ai-btn ${isDeciding ? "generating" : ""}`}
+              onClick={handleAiDecision}
+              disabled={isDeciding}
+            >
+              {isDeciding ? (
+                <>
+                  <div className="loading-spinner"></div>
+                  <span>AI is analyzing...</span>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-brain"></i>
+                  <span>DECIDE USING AI</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
         <div
           className="login-avatar"

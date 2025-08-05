@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://1f39d9990a2e.ngrok-free.app/api/v1";
+const BASE_URL = "https://521c75dcf014.ngrok-free.app/api/v1";
 const API_KEY = "asdiwfnlqndo139jnscakncsacd";
 
 // Create axios instance with enhanced configuration
@@ -128,6 +128,37 @@ export const authAPI = {
 		if (!zoomdocs_user_id) throw new Error("zoomdocs_user_id is required");
 		return api.post("/auth/user_id/check", { zoomdocs_user_id });
 	},
+
+	getGeneratedDocumentsList: (zoomdocs_auth_id, zoomdocs_user_id, records = 3) => {
+		if (!zoomdocs_auth_id || !zoomdocs_user_id) {
+			throw new Error(
+				"Both zoomdocs_auth_id and zoomdocs_user_id are required"
+			);
+		}
+		return api.post('/auth/generated_documents/list', {
+			zoomdocs_auth_id,
+			zoomdocs_user_id,
+			records,
+		});
+	},
+
+	helpMeDecide: (zoomdocs_auth_id, zoomdocs_user_id, help_me_decide_inputs) => {
+		if (!zoomdocs_auth_id || !zoomdocs_user_id) {
+			throw new Error(
+				"Both zoomdocs_auth_id and zoomdocs_user_id are required"
+			);
+		}
+		if (!help_me_decide_inputs || !help_me_decide_inputs.describe_the_situation || !help_me_decide_inputs.what_do_you_expect) {
+			throw new Error(
+				"help_me_decide_inputs with describe_the_situation and what_do_you_expect are required"
+			);
+		}
+		return api.post('/help-me-decide', {
+			zoomdocs_auth_id,
+			zoomdocs_user_id,
+			help_me_decide_inputs,
+		});
+	},
 };
 
 // Credits-related API functions
@@ -155,6 +186,8 @@ export const checkUser = authAPI.checkUser;
 export const startUser = authAPI.startUser;
 export const generateUserId = authAPI.generateUserId;
 export const checkUserId = authAPI.checkUserId;
+export const getGeneratedDocumentsList = authAPI.getGeneratedDocumentsList;
+export const helpMeDecide = authAPI.helpMeDecide;
 export const getCredits = creditsAPI.get;
 
 // Export the configured axios instance for advanced usage
