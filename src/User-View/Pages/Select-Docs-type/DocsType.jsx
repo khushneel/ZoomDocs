@@ -18,6 +18,8 @@ export default function DocsType() {
   const [situation, setSituation] = useState("");
   const [expectedOutcome, setExpectedOutcome] = useState("");
   const [isDeciding, setIsDeciding] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState(null);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const navigate = useNavigate();
   const typeDropdownRef = useRef(null);
   const formatDropdownRef = useRef(null);
@@ -126,6 +128,10 @@ export default function DocsType() {
 
       console.log('AI Decision Response:', response.data);
       
+      // Store recommendations data
+      setAiRecommendations(response.data.recommendations);
+      setShowRecommendations(true);
+      
       // Process the response and auto-select recommended document type
       if (response.data && response.data.recommendations && response.data.recommendations.document_type) {
         const recommendedDocType = response.data.recommendations.document_type;
@@ -153,12 +159,16 @@ export default function DocsType() {
         }
       }
 
-      // Close the help box after successful response
-      setShowHelpBox(false);
-      
       // Show success message with justification if available
       const justification = response.data?.recommendations?.justification || 'AI recommendation completed.';
       toast.success(`AI Recommendation: ${justification}`);
+      
+      // Don't auto-close - let user manually close
+      // setTimeout(() => {
+      //   setShowRecommendations(false);
+      //   setShowHelpBox(false);
+      //   setAiRecommendations(null);
+      // }, 5000);
       
     } catch (err) {
       console.error("AI Decision Error:", err);
@@ -336,48 +346,118 @@ export default function DocsType() {
         </div>
         {showHelpBox && (
           <div className="Help-me-decide-box">
-            <h2 className="help-title">ZoomDocs AI</h2>
-            <p className="help-desc-main">
-              Not sure what document you need for your situation?
-            </p>
-            <p className="help-desc-sub">
-              ZoomDocs AI will help you decide!
-            </p>
-            <div className="help-form-fields">
-              <label className="help-label">Describe your situation</label>
-              <input
-                type="text"
-                className="input-field"
-                value={situation}
-                onChange={e => setSituation(e.target.value)}
-                placeholder="E.g. I need a contract for freelance work..."
-              />
-              <label className="help-label">What do you expect the outcome from this document should be?</label>
-              <input
-                type="text"
-                className="input-field"
-                value={expectedOutcome}
-                onChange={e => setExpectedOutcome(e.target.value)}
-                placeholder="E.g. Ensure payment terms are clear..."
-              />
-            </div>
-            <button
-              className={`deploy-btn help-ai-btn ${isDeciding ? "generating" : ""}`}
-              onClick={handleAiDecision}
-              disabled={isDeciding}
-            >
-              {isDeciding ? (
-                <>
-                  <div className="loading-spinner"></div>
-                  <span>AI is analyzing...</span>
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-brain"></i>
-                  <span>DECIDE USING AI</span>
-                </>
-              )}
-            </button>
+            {!showRecommendations ? (
+              <>
+                <h2 className="help-title">ZoomDocs AI</h2>
+                <p className="help-desc-main">
+                  Not sure what document you need for your situation?
+                </p>
+                <p className="help-desc-sub">
+                  ZoomDocs AI will help you decide!
+                </p>
+                <div className="help-form-fields">
+                  <label className="help-label">Describe your situation</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={situation}
+                    onChange={e => setSituation(e.target.value)}
+                    placeholder="E.g. I need a contract for freelance work..."
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="sentences"
+                  />
+                  <label className="help-label">What do you expect the outcome from this document should be?</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    value={expectedOutcome}
+                    onChange={e => setExpectedOutcome(e.target.value)}
+                    placeholder="E.g. Ensure payment terms are clear..."
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="sentences"
+                  />
+                </div>
+                <button
+                  className={`deploy-btn help-ai-btn ${isDeciding ? "generating" : ""}`}
+                  onClick={handleAiDecision}
+                  disabled={isDeciding}
+                >
+                  {isDeciding ? (
+                    <>
+                      <div className="loading-spinner"></div>
+                      <span>AI is analyzing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-brain"></i>
+                      <span>DECIDE USING AI</span>
+                    </>
+                  )}
+                </button>
+              </>
+            ) : (
+              <div className="ai-recommendations">
+                <div className="recommendation-header">
+                  <div className="ai-icon">
+                    <i className="fas fa-brain"></i>
+                  </div>
+                  <h2 className="recommendation-title">AI Recommendation</h2>
+                  <div className="success-badge">
+                    <i className="fas fa-check-circle"></i>
+                    <span>Analysis Complete</span>
+                  </div>
+                </div>
+                
+                {aiRecommendations && (
+                  <div className="recommendation-content">
+                    <div className="recommended-document">
+                      <div className="document-type-badge">
+                        <i className="fas fa-file-contract"></i>
+                        <span className="document-type-name">
+                          {aiRecommendations.document_type ? 
+                            aiRecommendations.document_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) :
+                            'Document Type'
+                          }
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="justification-section">
+                      <h3 className="justification-title">
+                        <i className="fas fa-lightbulb"></i>
+                        Why this document?
+                      </h3>
+                      <p className="justification-text">
+                        {aiRecommendations.justification || 'AI recommendation analysis completed.'}
+                      </p>
+                    </div>
+                    
+                    <div className="recommendation-actions">
+                      <div className="auto-selection-note">
+                        <i className="fas fa-magic"></i>
+                        <span>Document type has been automatically selected for you!</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="recommendation-footer">
+                  <button 
+                    className="close-recommendation-btn"
+                    onClick={() => {
+                      setShowRecommendations(false);
+                      setShowHelpBox(false);
+                      setAiRecommendations(null);
+                    }}
+                  >
+                    <i className="fas fa-times"></i>
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
