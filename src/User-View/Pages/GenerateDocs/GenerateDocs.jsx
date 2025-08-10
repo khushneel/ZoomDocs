@@ -43,6 +43,9 @@ export default function GenerateDocs() {
   const [creditsAndDocsFetched, setCreditsAndDocsFetched] = useState(false);
   const [documentGenerationStarted, setDocumentGenerationStarted] =
     useState(false);
+  const [showFilenameModal, setShowFilenameModal] = useState(false);
+  const [documentFilename, setDocumentFilename] = useState("");
+  const [filenameError, setFilenameError] = useState("");
   const editorRef = useRef(null);
 
   // Function to fetch credits and documents list using Redux - STRICTLY SEQUENTIAL
@@ -129,38 +132,113 @@ export default function GenerateDocs() {
       !isLoading
     ) {
       console.log(
-        "[GenerateDocs] ✅ STARTING DOCUMENT GENERATION - SINGLE EXECUTION ONLY"
+        "[GenerateDocs] ✅ READY FOR DOCUMENT GENERATION - SHOWING FILENAME INPUT"
       );
       setDocumentGenerationStarted(true); // Set flag immediately to prevent re-execution
-      setIsGenerating(true);
-      let { user_inputs } = location.state;
-      let tone_level = 0;
-      if (user_inputs.tone_level !== undefined) {
-        tone_level = parseInt(user_inputs.tone_level, 10);
-        const { tone_level: _, ...rest } = user_inputs;
-        user_inputs = rest;
-      }
-
-      // Get auth credentials
-      const { authId, userId } = getAuthFromStorage();
-
-      console.log("[GenerateDocs] Starting API call with:", {
+      
+      // Show filename modal instead of starting generation immediately
+      setShowFilenameModal(true);
+      
+      // Generate a default filename based on document type
+      const defaultFilename = generateDefaultFilename(docstype);
+      setDocumentFilename(defaultFilename);
+    } else {
+      console.log("[GenerateDocs] Missing required data for generation:", {
+        hasLocationState: !!location.state,
+        hasUserInputs: !!location.state?.user_inputs,
         docstype,
-        tone_level,
-        user_inputs,
-        zoomdocs_auth_id: authId,
-        zoomdocs_user_id: userId,
+        isLoading,
       });
+    }
+  }, [
+    location.state,
+    docstype,
+    reduxAuthId,
+    reduxUserId,
+    isLoading,
+    documentGenerationStarted,
+  ]);
 
-      const callOptions = {
-        tone_level,
-        zoomdocs_auth_id: authId,
-        zoomdocs_user_id: userId,
-      };
+  // Generate default filename based on document type
+  const generateDefaultFilename = (docType) => {
+    const currentDate = new Date();
+    const dateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    const typeMap = {
+      'refund_request_letter': 'Refund Request Letter',
+      'complaint_letter': 'Complaint Letter',
+      'resignation_letter': 'Resignation Letter',
+      'cover_letter': 'Cover Letter',
+      'business_proposal': 'Business Proposal',
+      'invoice': 'Invoice',
+      'contract': 'Contract'
+    };
+    
+    const documentName = typeMap[docType] || docType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return `${documentName} - ${dateString}`;
+  };
 
-      // Step 1: Generate Document
-      console.log("[GenerateDocs] Step 1: Calling generateDocument API...");
-      generateDocument(docstype, user_inputs, callOptions)
+  // Handle filename submission
+  const handleFilenameSubmit = () => {
+    // Validate filename
+    if (!documentFilename.trim()) {
+      setFilenameError("Please enter a filename for your document");
+      return;
+    }
+    
+    if (documentFilename.length < 3) {
+      setFilenameError("Filename must be at least 3 characters long");
+      return;
+    }
+    
+    if (documentFilename.length > 50) {
+      setFilenameError("Filename must be less than 50 characters");
+      return;
+    }
+    
+    // Clear any previous errors
+    setFilenameError("");
+    setShowFilenameModal(false);
+    
+    // Now start the actual document generation
+    startDocumentGeneration();
+  };
+
+  // Start the actual document generation process
+  const startDocumentGeneration = () => {
+    console.log("[GenerateDocs] Starting document generation with filename:", documentFilename);
+    setIsGenerating(true);
+    
+    let { user_inputs } = location.state;
+    let tone_level = 0;
+    if (user_inputs.tone_level !== undefined) {
+      tone_level = parseInt(user_inputs.tone_level, 10);
+      const { tone_level: _, ...rest } = user_inputs;
+      user_inputs = rest;
+    }
+
+    // Get auth credentials
+    const { authId, userId } = getAuthFromStorage();
+
+    console.log("[GenerateDocs] Starting API call with:", {
+      docstype,
+      tone_level,
+      user_inputs,
+      zoomdocs_auth_id: authId,
+      zoomdocs_user_id: userId,
+      user_file_name: documentFilename,
+    });
+
+    const callOptions = {
+      tone_level,
+      zoomdocs_auth_id: authId,
+      zoomdocs_user_id: userId,
+      user_file_name: documentFilename,
+    };
+
+    // Step 1: Generate Document
+    console.log("[GenerateDocs] Step 1: Calling generateDocument API...");
+    generateDocument(docstype, user_inputs, callOptions)
         .then((res) => {
           console.log("[GenerateDocs] Step 1: generateDocument response:", res);
 
@@ -350,22 +428,7 @@ export default function GenerateDocs() {
           setError(errorData);
           setIsGenerating(false);
         });
-    } else {
-      console.log("[GenerateDocs] Missing required data for generation:", {
-        hasLocationState: !!location.state,
-        hasUserInputs: !!location.state?.user_inputs,
-        docstype,
-        isLoading,
-      });
-    }
-  }, [
-    location.state,
-    docstype,
-    reduxAuthId,
-    reduxUserId,
-    isLoading,
-    documentGenerationStarted,
-  ]);
+  };
 
   const handleDownloadPDF = () => {
     if (apiData && apiData.pdf && apiData.pdf.fileName) {
@@ -425,11 +488,13 @@ export default function GenerateDocs() {
         tone_level,
         zoomdocs_auth_id: authId,
         zoomdocs_user_id: userId,
+        user_file_name: documentFilename,
       };
 
       // Step 1 (Retry): Generate Document
       console.log(
-        "[GenerateDocs-Retry] Step 1: Calling generateDocument API..."
+        "[GenerateDocs-Retry] Step 1: Calling generateDocument API with filename:",
+        documentFilename
       );
       generateDocument(docstype, user_inputs, callOptions)
         .then((res) => {
@@ -729,7 +794,72 @@ export default function GenerateDocs() {
       <div className="generatedocs-main">
         <div className="generatedocs-center">
           <div className="generatedocs-preview-card ">
-            {error ? (
+            {showFilenameModal ? (
+              <div className="filename-input-card">
+                <div className="filename-input-header">
+                  <div className="filename-input-icon">
+                    <i className="fas fa-file-alt"></i>
+                  </div>
+                  <h2 className="filename-input-title">Name Your Document</h2>
+                  <p className="filename-input-subtitle">
+                    Choose a memorable name for your {docstype?.replace(/_/g, ' ')} document
+                  </p>
+                </div>
+                
+                <form 
+                  className="filename-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleFilenameSubmit();
+                  }}
+                >
+                  <div className="filename-input-group">
+                    <label className="filename-label" htmlFor="document-filename">
+                      Document Name
+                    </label>
+                    <input
+                      id="document-filename"
+                      type="text"
+                      className="filename-input"
+                      value={documentFilename}
+                      onChange={(e) => {
+                        setDocumentFilename(e.target.value);
+                        if (filenameError) setFilenameError("");
+                      }}
+                      placeholder="Enter document name..."
+                      autoFocus
+                      maxLength={50}
+                    />
+                    {filenameError && (
+                      <p className="filename-error">{filenameError}</p>
+                    )}
+                  </div>
+                  
+                  <div className="filename-actions">
+                    <button
+                      type="button"
+                      className="filename-btn filename-btn-cancel"
+                      onClick={() => {
+                        setShowFilenameModal(false);
+                        setDocumentGenerationStarted(false);
+                        navigate(-1);
+                      }}
+                    >
+                      <i className="fas fa-times"></i>
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="filename-btn filename-btn-submit"
+                      disabled={!documentFilename.trim()}
+                    >
+                      <i className="fas fa-rocket"></i>
+                      Generate Document
+                    </button>
+                  </div>
+                </form>
+              </div>
+            ) : error ? (
               <div className="error-state">
                 <div className="error-icon-container">
                   <i
@@ -758,6 +888,7 @@ export default function GenerateDocs() {
                     <>
                       <button 
                         className="error-btn error-btn-primary"
+                        onClick={handleTopUp}
                       >
                         <i
                           className="fas fa-plus"
@@ -870,7 +1001,7 @@ export default function GenerateDocs() {
               </div>
             )}
           </div>
-          {!error && (
+          {!error && !showFilenameModal && (
             <div className="generatedocs-btn-row">
               <button
                 className="generatedocs-btn btn-primary"
