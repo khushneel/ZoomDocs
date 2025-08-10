@@ -108,6 +108,283 @@ export default function RecentDocsView() {
         navigate("/");
     };
 
+    const handleDownloadPDF = async () => {
+        if (!htmlContent) {
+            console.log("[RecentDocsView] No HTML content available for PDF generation");
+            return;
+        }
+
+        try {
+            console.log("[RecentDocsView] Generating PDF from HTML content...");
+            
+            // Dynamically import html2pdf library
+            const html2pdf = await import('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+            
+            // Create a temporary div with the HTML content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = `
+                <div style="
+                    font-family: 'Times New Roman', serif;
+                    background-color: white;
+                    color: black;
+                    margin: 0;
+                    padding: 0;
+                    line-height: 1.4;
+                    width: 100%;
+                    box-sizing: border-box;
+                    font-size: 14px;
+                ">
+                    ${htmlContent}
+                </div>
+            `;
+            
+            // Hide any download buttons from the content
+            const buttons = tempDiv.querySelectorAll('button, .download-container, .download-btn');
+            buttons.forEach(btn => btn.style.display = 'none');
+            
+            // Make images very compact
+            const images = tempDiv.querySelectorAll('img');
+            images.forEach(img => {
+                img.style.maxWidth = '120px';
+                img.style.height = '60px';
+                img.style.display = 'block';
+                img.style.margin = '5px auto';
+                img.style.pageBreakInside = 'avoid';
+                img.style.pageBreakAfter = 'avoid';
+            });
+            
+            // Make headers very compact
+            const headers = tempDiv.querySelectorAll('.header');
+            headers.forEach(header => {
+                header.style.textAlign = 'center';
+                header.style.marginBottom = '8px';
+                header.style.marginTop = '0px';
+                header.style.pageBreakAfter = 'avoid';
+                header.style.pageBreakInside = 'avoid';
+                header.style.height = 'auto';
+            });
+            
+            // Ultra compact container
+            const containers = tempDiv.querySelectorAll('.container');
+            containers.forEach(container => {
+                container.style.padding = '8px';
+                container.style.margin = '0';
+                container.style.maxWidth = '100%';
+                container.style.pageBreakInside = 'avoid';
+            });
+            
+            // Compact date section
+            const dates = tempDiv.querySelectorAll('.date');
+            dates.forEach(date => {
+                date.style.marginBottom = '8px';
+                date.style.marginTop = '0px';
+                date.style.pageBreakAfter = 'avoid';
+                date.style.fontSize = '14px';
+            });
+            
+            // Compact document body
+            const docBodies = tempDiv.querySelectorAll('.document-body');
+            docBodies.forEach(body => {
+                body.style.marginTop = '5px';
+                body.style.marginBottom = '5px';
+                body.style.pageBreakBefore = 'avoid';
+                body.style.fontSize = '14px';
+                body.style.lineHeight = '1.4';
+            });
+            
+            // Compact signature section
+            const signatures = tempDiv.querySelectorAll('.signature');
+            signatures.forEach(sig => {
+                sig.style.marginTop = '15px';
+                sig.style.pageBreakInside = 'avoid';
+                sig.style.fontSize = '14px';
+            });
+            
+            // Reduce all paragraph margins
+            const paragraphs = tempDiv.querySelectorAll('p');
+            paragraphs.forEach(p => {
+                p.style.marginTop = '3px';
+                p.style.marginBottom = '3px';
+                p.style.lineHeight = '1.4';
+            });
+            
+            // Configure PDF options for maximum content on one page
+            const options = {
+                margin: [10, 10, 10, 10], // Very small margins: top, right, bottom, left (in mm)
+                filename: `${originalDocumentData.document_type?.replace(/_/g, '_') || 'document'}_${new Date().getTime()}.pdf`,
+                image: { type: 'jpeg', quality: 0.9 },
+                html2canvas: { 
+                    scale: 1.2, // Lower scale for more compact content
+                    useCORS: true,
+                    letterRendering: true,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    width: 794, // A4 width in pixels at 96 DPI
+                    height: 1123, // A4 height in pixels at 96 DPI
+                    scrollX: 0,
+                    scrollY: 0,
+                    dpi: 96
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true,
+                    precision: 2
+                },
+                pagebreak: { 
+                    mode: 'avoid-all',
+                    avoid: '*' // Avoid page breaks on all elements
+                }
+            };
+            
+            // Generate and download PDF
+            await html2pdf.default().from(tempDiv).set(options).save();
+            
+            console.log("[RecentDocsView] PDF download completed successfully");
+            
+        } catch (err) {
+            console.error("[RecentDocsView] Error generating PDF with html2pdf:", err);
+            
+            // Fallback to browser print method
+            console.log("[RecentDocsView] Falling back to browser print method...");
+            fallbackToPrintMethod();
+        }
+    };
+
+    // Fallback method using browser print
+    const fallbackToPrintMethod = () => {
+        try {
+            // Create a temporary iframe for printing
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.top = '-1000px';
+            iframe.style.left = '-1000px';
+            iframe.style.width = '1px';
+            iframe.style.height = '1px';
+            iframe.style.opacity = '0';
+            
+            document.body.appendChild(iframe);
+            
+            const iframeDoc = iframe.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Document - ZoomDocs</title>
+                    <style>
+                        @page { 
+                            size: A4; 
+                            margin: 15mm; 
+                        }
+                        body { 
+                            font-family: "Times New Roman", serif; 
+                            margin: 0; 
+                            padding: 0; 
+                            line-height: 1.6; 
+                            font-size: 14px;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 15px;
+                            page-break-after: avoid;
+                            page-break-inside: avoid;
+                        }
+                        .header img {
+                            max-width: 150px;
+                            height: auto;
+                            margin: 5px auto;
+                        }
+                        .date {
+                            margin-bottom: 15px;
+                        }
+                        .signature {
+                            margin-top: 20px;
+                            page-break-inside: avoid;
+                        }
+                        .footer {
+                            page-break-inside: avoid;
+                        }
+                        .container {
+                            padding: 10px;
+                            margin: 0;
+                        }
+                        .download-container, 
+                        button { 
+                            display: none !important; 
+                        }
+                        p {
+                            margin: 8px 0;
+                        }
+                        h1, h2, h3, h4, h5, h6 {
+                            page-break-after: avoid;
+                            margin: 10px 0 8px 0;
+                        }
+                    </style>
+                </head>
+                <body>${htmlContent}</body>
+                </html>
+            `);
+            iframeDoc.close();
+            
+            // Wait for content to load then print
+            iframe.onload = () => {
+                setTimeout(() => {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                    
+                    // Remove iframe after printing
+                    setTimeout(() => {
+                        document.body.removeChild(iframe);
+                    }, 1000);
+                }, 500);
+            };
+            
+        } catch (error) {
+            console.error("[RecentDocsView] Fallback print method failed:", error);
+            
+            // Final fallback to server PDF if available
+            if (originalDocumentData && originalDocumentData.file_path_pdf) {
+                console.log("[RecentDocsView] Using server PDF as final fallback...");
+                downloadServerPDF();
+            }
+        }
+    };
+
+    // Fallback function for server PDF download
+    const downloadServerPDF = async () => {
+        const { authId, userId } = getAuthFromStorage();
+        
+        if (!authId || !userId) {
+            console.error("[RecentDocsView] Authentication credentials not found");
+            return;
+        }
+
+        try {
+            const fullFilePath = originalDocumentData.file_path_pdf;
+            const pdfFileName = fullFilePath.split('/').pop();
+            
+            const response = await getGeneratedDocument("pdf", pdfFileName, authId, userId);
+
+            if (response.status === 200 && response.data instanceof Blob) {
+                const url = window.URL.createObjectURL(response.data);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = pdfFileName;
+                document.body.appendChild(a);
+                a.click();
+                
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }, 100);
+            }
+        } catch (err) {
+            console.error("[RecentDocsView] Error downloading server PDF:", err);
+        }
+    };
+
     return (
         <div className={`dashboard-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""} ${isDarkMode ? "" : "light-mode"}`}>
             <SideBarCom isCollapsed={sidebarCollapsed} onToggle={toggleSidebar} />
@@ -180,6 +457,17 @@ export default function RecentDocsView() {
                                             </span>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <div className="document-actions">
+                                    <button 
+                                        className="action-btn download-btn"
+                                        onClick={handleDownloadPDF}
+                                        title="Download as PDF"
+                                    >
+                                        <i className="fa-solid fa-download"></i>
+                                        <span>Download PDF</span>
+                                    </button>
                                 </div>
                             </div>
 

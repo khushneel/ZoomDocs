@@ -80,8 +80,8 @@ export default function DocsType() {
 
     // Simulate generation process
     setTimeout(() => {
-      // Always navigate to /refund_request_letter/Template
-      navigate("/refund_request_letter/Template");
+      // Navigate to the selected document type's template page
+      navigate(`/${selectedTypeLabel}/Template`);
       setIsGenerating(false);
     }, 2000);
   };
