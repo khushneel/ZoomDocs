@@ -59,9 +59,9 @@ export default function SideBarCom({ isCollapsed, onToggle }) {
 			.map(doc => {
 				return {
 					id: doc.id,
-					title: formatDocumentTitle(doc.file_name, doc.document_type),
+					title: formatDocumentTitle(doc.user_file_name, doc.document_type),
 					date: formatRelativeDate(doc.generated_at),
-					fileName: doc.file_name,
+					fileName: doc.user_file_name,
 					documentType: doc.document_type,
 					filePath: doc.file_path_html,
 					// Store the complete original document data
