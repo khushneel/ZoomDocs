@@ -90,6 +90,10 @@ export default function DocsType() {
     navigate("/SignUp");
   };
 
+  const handleHelpClick = () => {
+    navigate("/about");
+  };
+
   const handleAiDecision = async () => {
     if (!situation.trim() || !expectedOutcome.trim()) {
       toast.error("Please fill in both fields before using AI decision.");
@@ -478,6 +482,24 @@ export default function DocsType() {
               <i className="fas fa-user"></i>
             </div>
             <div className="avatar-text">Login</div>
+          </div>
+        </div>
+
+        {/* Question Mark Help Button */}
+        <div
+          className="help-question-btn"
+          title="Help & Support"
+          role="button"
+          tabIndex={0}
+          onClick={handleHelpClick}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              handleHelpClick();
+            }
+          }}
+        >
+          <div className="question-icon">
+            <i className="fas fa-question"></i>
           </div>
         </div>
       </div>
