@@ -444,7 +444,7 @@ export default function RecentDocsView() {
               </div>
             </div>
 
-            <div className="login-avatar" onClick={handleAvatarClick}>
+            {/* <div className="login-avatar" onClick={handleAvatarClick}>
               <div className="avatar-container">
                 <div className="avatar-icon">
                   <i className="fa-solid fa-user"></i>
@@ -454,7 +454,7 @@ export default function RecentDocsView() {
                 </div>
               </div>
               <div className="avatar-glow"></div>
-            </div>
+            </div> */}
           </div>
         </div>
 

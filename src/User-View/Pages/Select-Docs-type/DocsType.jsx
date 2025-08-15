@@ -215,7 +215,7 @@ export default function DocsType() {
         </div>
  
 
-        <div className="docstype-card">
+        <div className={`docstype-card ${showHelpBox ? 'card-hidden' : ''}`}>
           <div className="card-header">
             <h2>
               <span className="gradient-text">Generate Legal Document</span>
@@ -349,7 +349,17 @@ export default function DocsType() {
           </div>
         </div>
         {showHelpBox && (
-          <div className="Help-me-decide-box">
+          <div className={`Help-me-decide-box ${showHelpBox ? 'card-visible' : ''}`}>
+            {/* Back button - only visible on mobile */}
+            <button 
+              className="back-btn-mobile"
+              onClick={() => setShowHelpBox(false)}
+              aria-label="Back to document selection"
+            >
+              <i className="fas fa-arrow-left"></i>
+              <span>Back</span>
+            </button>
+            
             {!showRecommendations ? (
               <>
                 <h2 className="help-title">ZoomDocs AI</h2>
@@ -465,7 +475,7 @@ export default function DocsType() {
           </div>
         )}
 
-        <div
+        {/* <div
           className="login-avatar"
           onClick={handleAvatarClick}
           title="Sign In / Sign Up"
@@ -483,7 +493,7 @@ export default function DocsType() {
             </div>
             <div className="avatar-text">Login</div>
           </div>
-        </div>
+        </div> */}
 
         {/* Question Mark Help Button */}
         <div

@@ -320,7 +320,7 @@ export default function DocsForm() {
                 </form>
             </div>
             
-            <div className="login-avatar" onClick={handleAvatarClick} title="Sign In / Sign Up">
+            {/* <div className="login-avatar" onClick={handleAvatarClick} title="Sign In / Sign Up">
                 <div className="avatar-container">
                     <div className="avatar-icon">
                         <i className="fas fa-user"></i>
@@ -330,7 +330,7 @@ export default function DocsForm() {
                     </div>
                 </div>
                 <div className="avatar-glow"></div>
-            </div>
+            </div> */}
         </div>
     );
 }

@@ -438,7 +438,7 @@
 
 
 /* Login Avatar */
-.login-avatar {
+/* .login-avatar {
   position: fixed;
   top: 1.5rem;
   right: 2rem;
@@ -462,7 +462,7 @@
   transform: translateY(-2px) scale(1.05);
   box-shadow: var(--shadow-glass-hover);
   border-color: var(--border-hover);
-}
+} */
 
 .avatar-container {
   display: flex;
@@ -796,6 +796,8 @@
     display: none !important;
   }
   
+ 
+  
   .generatedocs-main {
     margin-left: 0 !important;
     padding: 1.25rem 1.5rem;
@@ -822,12 +824,12 @@
   }
   
   
-  .login-avatar {
+  /* .login-avatar {
     top: 1rem;
     right: 1rem;
     width: 55px;
     height: 55px;
-  }
+  } */
   
   .avatar-icon {
     font-size: 1.1rem;
@@ -844,6 +846,8 @@
   .dashboard-layout .sidebar {
     display: none !important;
   }
+  
+
   
   .generatedocs-main {
     margin-left: 0 !important;
@@ -881,12 +885,12 @@
   
 
   
-  .login-avatar {
+  /* .login-avatar {
     top: 1rem;
     right: 1rem;
     width: 50px;
     height: 50px;
-  }
+  } */
   
   .avatar-icon {
     font-size: 1rem;
@@ -927,6 +931,8 @@
     display: none !important;
   }
   
+
+  
   .generatedocs-main {
     margin-left: 0 !important;
     padding: 1rem;
@@ -962,27 +968,12 @@
     min-width: auto;
   }
   
-  .theme-toggle {
-    top: 0.75rem;
-    right: 5rem;
-    width: 45px;
-    height: 45px;
-  }
-  
-  .theme-icon {
-    font-size: 0.9rem;
-  }
-  
-  .theme-text {
-    font-size: 0.55rem;
-  }
-  
-  .login-avatar {
+  /* .login-avatar {
     top: 0.75rem;
     right: 0.75rem;
     width: 45px;
     height: 45px;
-  }
+  } */
   
   .avatar-container {
     gap: 0.15rem;
@@ -1027,6 +1018,9 @@
     display: none !important;
   }
   
+  /* Hide theme toggle on responsive devices */
+
+  
   .generatedocs-main {
     margin-left: 0 !important;
     padding: 0.75rem;
@@ -1061,28 +1055,13 @@
     font-size: 0.85rem;
     border-radius: 10px;
   }
-  
-  .theme-toggle {
-    top: 0.5rem;
-    right: 4.5rem;
-    width: 40px;
-    height: 40px;
-  }
-  
-  .theme-icon {
-    font-size: 0.8rem;
-  }
-  
-  .theme-text {
-    font-size: 0.5rem;
-  }
-  
-  .login-avatar {
+
+  /* .login-avatar {
     top: 0.5rem;
     right: 0.5rem;
     width: 40px;
     height: 40px;
-  }
+  } */
   
   .avatar-container {
     gap: 0.1rem;
@@ -1152,15 +1131,10 @@
   outline-offset: 2px;
 }
 
-.theme-toggle:focus-visible {
+/* .login-avatar:focus-visible {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
-}
-
-.login-avatar:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
-}
+} */
 
 /* Animation for smooth entry */
 @keyframes fadeInUp {
@@ -1184,7 +1158,7 @@
 
 /* Print styles */
 @media print {
-  .login-avatar,
+  /* .login-avatar, */
   .generatedocs-btn-row {
     display: none !important;
   }

@@ -861,29 +861,15 @@
     width: 100%;
   }
   
-  .theme-toggle {
-    top: 1rem;
-    right: 4rem;
-    width: 48px;
-    height: 24px;
-  }
+
   
-  .theme-toggle-slider {
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
-  }
-  
-  .light-mode .theme-toggle-slider {
-    transform: translateX(24px);
-  }
-  
-  .login-avatar {
+
+  /* .login-avatar {
     top: 1rem;
     right: 1rem;
     width: 50px;
     height: 50px;
-  }
+  } */
 }
 
 @media (max-width: 480px) {

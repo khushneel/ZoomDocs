@@ -507,7 +507,7 @@
 /* Light Mode Adjustments */
 .light-mode .back-btn,
 .light-mode .theme-toggle,
-.light-mode .login-avatar,
+/* .light-mode .login-avatar, */
 .light-mode .action-btn,
 .light-mode .control-btn {
   background: rgba(255, 255, 255, 0.9);

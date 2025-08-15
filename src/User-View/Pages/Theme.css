@@ -151,7 +151,7 @@
 /* Fixed Theme Toggle Button - Match Generate Button Style */
 .theme-toggle {
   position: fixed;
-  top: 5.7rem;
+  top: 1.7rem;
   right: 2rem;
   width: 64px;
   height: 32px;
@@ -414,19 +414,8 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .theme-toggle {
-    top: 1rem;
-    right: 1rem;
-    width: 48px;
-    height: 24px;
-    border-radius: 12px;
-  }
   
-  .theme-toggle-slider {
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
-  }
+ 
   
   .light-mode .theme-toggle-slider {
     transform: translateX(24px);

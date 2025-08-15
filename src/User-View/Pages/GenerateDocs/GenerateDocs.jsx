@@ -1078,7 +1078,7 @@ export default function GenerateDocs() {
         </div>
       </div>
 
-      <div
+      {/* <div
         className="login-avatar"
         onClick={handleAvatarClick}
         title="Sign In / Sign Up"
@@ -1092,7 +1092,7 @@ export default function GenerateDocs() {
           </div>
         </div>
         <div className="avatar-glow"></div>
-      </div>
+      </div> */}
     </div>
   );
 }

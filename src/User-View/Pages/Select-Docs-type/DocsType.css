@@ -21,6 +21,41 @@
   gap: 1.5rem;
 }
 
+/* Card visibility states - only for responsive devices */
+.card-hidden {
+  display: flex; /* Default: always show on desktop */
+}
+
+.card-visible {
+  display: flex;
+}
+
+/* Desktop layout (above 1200px) - both cards visible side by side */
+@media (min-width: 1201px) {
+  .dashboard-main {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+  
+  /* On desktop, always show both cards - ignore hide/show states */
+  .card-hidden {
+    display: flex !important;
+  }
+  
+  /* Hide back button on desktop */
+  .back-btn-mobile {
+    display: none !important;
+  }
+  
+  .docstype-card,
+  .Help-me-decide-box {
+    width: 450px;
+    flex-shrink: 0;
+  }
+}
+
 
 /* Remove particles - clean design */
 .particles-container {
@@ -53,6 +88,8 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .docstype-card::before {
@@ -392,7 +429,7 @@
 }
 
 /* Login Avatar */
-.login-avatar {
+/* .login-avatar {
   position: fixed;
   top: 1.4rem;
   right: 2rem;
@@ -416,9 +453,9 @@
   transform: translateY(-2px) scale(1.05);
   box-shadow: var(--shadow-glass-hover);
   border-color: var(--border-hover);
-}
+} */
 
-.avatar-container {
+/* .avatar-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -439,7 +476,7 @@
 
 .avatar-glow {
   display: none;
-}
+} */
 
 /* Question Mark Help Button */
 .help-question-btn {
@@ -501,6 +538,36 @@
   display: flex;
   flex-direction: column;
   animation: fadeInUp 0.5s;
+}
+
+/* Back button for mobile - initially hidden */
+.back-btn-mobile {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 1rem;
+  align-self: flex-start;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.back-btn-mobile:hover {
+  background: var(--bg-quaternary);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.back-btn-mobile i {
+  font-size: 0.8rem;
 }
 
 /* Form row for label and button */
@@ -816,12 +883,66 @@
 }
 
 @media (max-width: 1200px) {
+  .dashboard-main {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  
+  /* ONLY on responsive devices: Hide docstype-card when help box is shown */
+  .card-hidden {
+    display: none !important;
+  }
+  
   .Help-me-decide-box {
     position: static;
     width: 100%;
-    margin-top: 2rem;
+    max-width: 450px;
+    margin-top: 0;
     min-height: 300px;
     box-shadow: var(--shadow-small);
+  }
+  
+  /* ONLY on responsive devices: Show back button */
+  .back-btn-mobile {
+    display: flex;
+  }
+}
+
+/* Tablet specific styles */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .dashboard-main {
+    padding: 2rem 1.5rem;
+  }
+  
+  .docstype-card {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem;
+  }
+  
+  .Help-me-decide-box {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem;
+  }
+}
+
+/* Mobile landscape */
+@media (max-width: 900px) and (min-width: 769px) and (orientation: landscape) {
+  .dashboard-main {
+    padding: 1.5rem 1rem;
+    justify-content: center;
+  }
+  
+  .docstype-card {
+    max-width: 450px;
+    padding: 1.75rem;
+  }
+  
+  .Help-me-decide-box {
+    max-width: 450px;
+    padding: 1.75rem;
   }
 }
 
@@ -830,15 +951,48 @@
   .dashboard-main {
     margin-left: 0;
     padding: 1rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    gap: 0;
   }
   
   .dashboard-main.sidebar-collapsed {
     margin-left: 0;
   }
   
+  /* Single card display on mobile - responsive only */
   .docstype-card {
-    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+    padding: 1.5rem;
     margin: 1rem 0;
+  }
+  
+  /* MOBILE ONLY: Hide docstype-card when help box is shown */
+  .card-hidden {
+    display: none !important;
+  }
+  
+  .Help-me-decide-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    min-height: auto;
+  }
+  
+  /* MOBILE ONLY: Back button styling */
+  .back-btn-mobile {
+    display: flex;
+    margin-bottom: 1rem;
+    padding: 0.875rem 1.25rem;
+    font-size: 1rem;
+    border-radius: 14px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   
   .responsive-logo {
@@ -846,28 +1000,11 @@
     margin-bottom: 2rem;
   }
   
-  .theme-toggle {
-    top: 1rem;
-    right: 1rem;
-    width: 48px;
-    height: 24px;
-  }
+ 
   
-  .theme-toggle-slider {
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
-  }
   
   .light-mode .theme-toggle-slider {
     transform: translateX(24px);
-  }
-  
-  .login-avatar {
-    bottom: 1rem;
-    right: 1rem;
-    width: 50px;
-    height: 50px;
   }
   
   .help-question-btn {
@@ -879,6 +1016,47 @@
   
   .question-icon {
     font-size: 1.2rem;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .dashboard-main {
+    padding: 0.75rem;
+  }
+  
+  .docstype-card {
+    max-width: 100%;
+    margin: 0.5rem 0;
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
+  
+  .Help-me-decide-box {
+    max-width: 100%;
+    margin: 0.5rem 0;
+    padding: 1.25rem;
+    border-radius: 20px;
+  }
+  
+  .back-btn-mobile {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 12px;
+  }
+  
+  .card-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .help-title {
+    font-size: 1.25rem;
+  }
+  
+  .help-question-btn {
+    width: 44px;
+    height: 44px;
+    bottom: 4rem;
   }
 }
 
