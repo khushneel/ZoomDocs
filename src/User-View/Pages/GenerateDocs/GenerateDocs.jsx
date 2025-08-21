@@ -1,9 +1,14 @@
+
 import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../../../contexts/ThemeContext";
 import SideBarCom from "../../Component/SideBar";
-import { generateDocument, getGeneratedDocument } from "../../User-View-Api";
+import {
+  generateDocument,
+  getGeneratedDocument,
+  rephraseDocument,
+} from "../../User-View-Api";
 import {
   getCreditsAsync,
   getGeneratedDocumentsListAsync,
@@ -46,6 +51,10 @@ export default function GenerateDocs() {
   const [showFilenameModal, setShowFilenameModal] = useState(false);
   const [documentFilename, setDocumentFilename] = useState("");
   const [filenameError, setFilenameError] = useState("");
+  const [showRephraseModal, setShowRephraseModal] = useState(false);
+  const [rephraseInput, setRephraseInput] = useState("");
+  const [rephraseError, setRephraseError] = useState("");
+  const [isRephrasing, setIsRephrasing] = useState(false);
   const editorRef = useRef(null);
 
   // Function to fetch credits and documents list using Redux - STRICTLY SEQUENTIAL
@@ -241,6 +250,7 @@ export default function GenerateDocs() {
     generateDocument(docstype, user_inputs, callOptions)
         .then((res) => {
           console.log("[GenerateDocs] Step 1: generateDocument response:", res);
+          console.log("[GenerateDocs] Generate API Full Response Data:", JSON.stringify(res.data, null, 2));
 
           // Check if Step 1 was successful (status 200)
           if (res.status !== 200) {
@@ -434,6 +444,10 @@ export default function GenerateDocs() {
     if (apiData && apiData.pdf && apiData.pdf.fileName) {
       const fileName = apiData.pdf.fileName;
       const { authId, userId } = getAuthFromStorage();
+      
+      console.log("[Download PDF] Downloading PDF with filename:", fileName);
+      console.log("[Download PDF] PDF File Path:", apiData.pdf.fileURI || "Not available");
+      
       getGeneratedDocument("pdf", fileName, authId, userId)
         .then((res) => {
           console.log("[Download PDF] Blob response:", res);
@@ -448,6 +462,7 @@ export default function GenerateDocs() {
               window.URL.revokeObjectURL(url);
               document.body.removeChild(a);
             }, 100);
+            console.log("[Download PDF] ✅ PDF download initiated successfully");
           } else {
             console.error("[Download PDF] No valid PDF blob in response");
           }
@@ -785,6 +800,175 @@ export default function GenerateDocs() {
     setEditedHtmlContent(e.target.innerHTML);
   };
 
+  const handleRephrase = () => {
+    console.log("[GenerateDocs] Rephrase button clicked");
+    setShowRephraseModal(true);
+    setRephraseInput("");
+    setRephraseError("");
+  };
+
+  const handleRephraseCancel = () => {
+    setShowRephraseModal(false);
+    setRephraseInput("");
+    setRephraseError("");
+  };
+
+  const handleRephraseSubmit = () => {
+    // Validate input
+    if (!rephraseInput.trim()) {
+      setRephraseError("Please enter rephrase instructions");
+      return;
+    }
+    
+    if (rephraseInput.length < 5) {
+      setRephraseError("Please provide more detailed rephrase instructions (at least 5 characters)");
+      return;
+    }
+    
+    if (rephraseInput.length > 300) {
+      setRephraseError("Rephrase instructions must be less than 300 characters");
+      return;
+    }
+    
+    // Clear any previous errors and start rephrasing
+    setRephraseError("");
+    setIsRephrasing(true);
+    
+    // Get auth credentials from localStorage
+    const { authId, userId } = getAuthFromStorage();
+    
+    // Get document type from generate API response
+    const documentType = apiData?.server?.documentType || docstype || "";
+    
+    // Get session ID from API data
+    const sessionId = apiData?.session_id || "";
+    
+    // Build the document data object
+    const documentData = {
+      session_id: sessionId,
+      file_name: apiData?.html?.fileURI || "",
+      raw_content: apiData?.raw_content || letter || "",
+      document_type: documentType
+    };
+    
+    // Log the complete rephrase request object for debugging
+    console.log("[GenerateDocs] Rephrase Request Object:", {
+      zoomdocs_auth_id: authId,
+      zoomdocs_user_id: userId,
+      document_data: documentData,
+      rephrase_prompt: rephraseInput
+    });
+    console.log("[GenerateDocs] Document Type for API:", documentType);
+    console.log("[GenerateDocs] Session ID for API:", sessionId);
+    console.log("[GenerateDocs] Rephrase will use 50 credits");
+    
+    // Make the rephrase API call with correct parameters
+    rephraseDocument(documentType, documentData, sessionId, rephraseInput, authId, userId)
+      .then((response) => {
+        console.log("[GenerateDocs] ===== REPHRASE API RESPONSE =====");
+        console.log("[GenerateDocs] Rephrase API Response Status:", response.status);
+        console.log("[GenerateDocs] Rephrase API Response Headers:", response.headers);
+        console.log("[GenerateDocs] Rephrase API Full Response:", response);
+        console.log("[GenerateDocs] Rephrase API Response Data:", JSON.stringify(response.data, null, 2));
+        console.log("[GenerateDocs] =====================================");
+        
+        if (response.status === 200) {
+          console.log("[GenerateDocs] ✅ Rephrase API Success - Status 200");
+          
+          // Extract rephrase response data
+          const rephraseData = response.data.rephraseResponse;
+          if (rephraseData && rephraseData.htmlFilePath) {
+            console.log("[GenerateDocs] Fetching rephrased HTML document...");
+            console.log("[GenerateDocs] HTML File Path:", rephraseData.htmlFilePath);
+            
+            // Update apiData with new file paths from rephrase response
+            const updatedApiData = {
+              ...apiData,
+              html: {
+                ...apiData.html,
+                fileName: rephraseData.htmlFilePath.split('/').pop(), // Extract filename from path
+                fileURI: rephraseData.htmlFilePath
+              },
+              pdf: {
+                ...apiData.pdf,
+                fileName: rephraseData.pdfFilePath.split('/').pop(), // Extract filename from path
+                fileURI: rephraseData.pdfFilePath
+              },
+              session_id: rephraseData.sessionId,
+              raw_content: rephraseData.documentContent
+            };
+            setApiData(updatedApiData);
+            setLetter(rephraseData.documentContent);
+            
+            // Fetch the new HTML content
+            setIsLoadingHtml(true);
+            const htmlFileName = rephraseData.htmlFilePath.split('/').pop();
+            
+            getGeneratedDocument("html", htmlFileName, authId, userId)
+              .then((htmlRes) => {
+                console.log("[GenerateDocs] Rephrased HTML fetch response status:", htmlRes.status);
+                
+                if (htmlRes.status === 200 && htmlRes.data instanceof Blob) {
+                  htmlRes.data.text().then((text) => {
+                    console.log("[GenerateDocs] ✅ Rephrased HTML content loaded successfully");
+                    setHtmlContent(text);
+                    setIsLoadingHtml(false);
+                  }).catch((err) => {
+                    console.error("[GenerateDocs] Error reading rephrased HTML blob:", err);
+                    setIsLoadingHtml(false);
+                  });
+                } else {
+                  console.log("[GenerateDocs] Failed to fetch rephrased HTML, status:", htmlRes.status);
+                  setIsLoadingHtml(false);
+                }
+              })
+              .catch((htmlErr) => {
+                console.error("[GenerateDocs] Error fetching rephrased HTML:", htmlErr);
+                setIsLoadingHtml(false);
+              });
+          }
+          
+          // Fetch updated credits after successful rephrase
+          console.log("[GenerateDocs] Fetching updated credits after rephrase...");
+          dispatch(getCreditsAsync({
+            zoomdocs_auth_id: authId,
+            zoomdocs_user_id: userId,
+          })).then((creditsResult) => {
+            if (creditsResult.type.endsWith("/fulfilled")) {
+              console.log("[GenerateDocs] Credits updated successfully after rephrase");
+            } else {
+              console.log("[GenerateDocs] Failed to update credits after rephrase");
+            }
+          });
+          
+          // Close modal only on success (200 response)
+          setShowRephraseModal(false);
+          setRephraseInput("");
+          setRephraseError("");
+        } else {
+          // API returned non-200 status - keep modal open and show error
+          setRephraseError(`API returned status ${response.status}. Please try again.`);
+        }
+      })
+      .catch((error) => {
+        console.error("[GenerateDocs] Rephrase API Error:", error);
+        
+        // Keep modal open and show error in the modal
+        if (error.response && error.response.data) {
+          if (error.response.status === 402 || error.response.data.error?.includes("credit")) {
+            setRephraseError("Insufficient credits. You need 50 credits to rephrase this document.");
+          } else {
+            setRephraseError(error.response.data.message || error.response.data.error || "Failed to rephrase document. Please try again.");
+          }
+        } else {
+          setRephraseError("Network error. Please check your connection and try again.");
+        }
+      })
+      .finally(() => {
+        setIsRephrasing(false);
+      });
+  };
+
   return (
     <div
       className={`dashboard-layout ${isDarkMode ? "dark-mode" : "light-mode"}`}
@@ -1001,7 +1185,7 @@ export default function GenerateDocs() {
               </div>
             )}
           </div>
-          {!error && !showFilenameModal && (
+          {!error && !showFilenameModal && (apiData || letter || htmlContent) && !isGenerating && !isLoadingHtml && (
             <div className="generatedocs-btn-row">
               <button
                 className="generatedocs-btn btn-primary"
@@ -1055,6 +1239,14 @@ export default function GenerateDocs() {
                   Edit Document
                 </button>
               )}
+              <button
+                className="generatedocs-btn btn-rephrase"
+                onClick={handleRephrase}
+                disabled={!apiData || isGenerating || isLoadingHtml}
+              >
+                <i className="fas fa-redo-alt" style={{ marginRight: "8px" }}></i>
+                Rephrase
+              </button>
             </div>
           )}
         </div>
@@ -1093,6 +1285,82 @@ export default function GenerateDocs() {
         </div>
         <div className="avatar-glow"></div>
       </div> */}
+
+      {/* Rephrase Modal */}
+      {showRephraseModal && (
+        <div className="modal-backdrop">
+          <div className="rephrase-modal">
+            <div className="rephrase-modal-header">
+              <div className="rephrase-modal-icon">
+                <i className="fas fa-redo-alt"></i>
+              </div>
+              <h2 className="rephrase-modal-title">Rephrase Document</h2>
+              <p className="rephrase-modal-subtitle">
+                Provide instructions on how you'd like to rephrase your document
+              </p>
+              <p className="rephrase-modal-credits">
+                <i className="fas fa-coins" style={{ marginRight: "0.5rem", color: "var(--accent-primary)" }}></i>
+                This action will consume your 50 credits
+              </p>
+            </div>
+            
+            <form 
+              className="rephrase-modal-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleRephraseSubmit();
+              }}
+            >
+              <div className="rephrase-input-group">
+                <label className="rephrase-label" htmlFor="rephrase-instructions">
+                  Rephrase Instructions
+                </label>
+                <textarea
+                  id="rephrase-instructions"
+                  className="rephrase-textarea"
+                  value={rephraseInput}
+                  onChange={(e) => {
+                    setRephraseInput(e.target.value);
+                    if (rephraseError) setRephraseError("");
+                  }}
+                  placeholder="e.g., Make it more formal, use simpler language, add more technical details..."
+                  rows={4}
+                  maxLength={300}
+                  disabled={isRephrasing}
+                />
+                <div className="rephrase-char-count">
+                  {rephraseInput.length}/300 characters
+                </div>
+                {rephraseError && (
+                  <p className="rephrase-error">{rephraseError}</p>
+                )}
+              </div>
+              
+              <div className="rephrase-modal-actions">
+                <button
+                  type="button"
+                  className="rephrase-btn rephrase-btn-cancel"
+                  onClick={handleRephraseCancel}
+                  disabled={isRephrasing}
+                >
+                  <i className="fas fa-times"></i>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rephrase-btn rephrase-btn-submit"
+                  disabled={!rephraseInput.trim() || isRephrasing}
+                >
+                  <i className={`fas ${isRephrasing ? "fa-spinner fa-spin" : "fa-magic"}`}></i>
+                  {isRephrasing ? "Rephrasing..." : "Rephrase Document"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+

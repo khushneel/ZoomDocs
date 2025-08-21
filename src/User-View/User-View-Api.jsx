@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = "https://1898f40a95f8.ngrok-free.app/api/v1";
+const BASE_URL = "https://koi-apt-gnu.ngrok-free.app/api/v1";
+
 const API_KEY = "asdiwfnlqndo139jnscakncsacd";
 
 // Create axios instance with enhanced configuration
@@ -10,8 +11,6 @@ const api = axios.create({
 		"X-API-KEY": API_KEY,
 		"Content-Type": "application/json",
 	},
-	timeout: 30000, // 30 second timeout
-	validateStatus: (status) => status < 500, // Don't throw on 4xx errors
 });
 
 // Request interceptor for logging and error handling
@@ -91,6 +90,31 @@ export const documentAPI = {
 			{
 				responseType: "blob",
 			}
+		);
+	},
+
+	rephrase: (documentType, documentData, sessionId, rephrasePrompt, zoomdocs_auth_id, zoomdocs_user_id) => {
+		if (!documentType) throw new Error("Document type is required");
+		if (!documentData) throw new Error("Document data is required");
+		if (!sessionId) throw new Error("Session ID is required");
+		if (!rephrasePrompt) throw new Error("Rephrase prompt is required");
+		if (!zoomdocs_auth_id || !zoomdocs_user_id) {
+			throw new Error("Both zoomdocs_auth_id and zoomdocs_user_id are required");
+		}
+
+		const payload = {
+			document_data: documentData,
+			session_id: sessionId,
+			rephrase_prompt: rephrasePrompt,
+			zoomdocs_auth_id,
+			zoomdocs_user_id,
+		};
+
+		console.log("Rephrase payload being sent to server:", payload);
+
+		return api.post(
+			`/documents/types/${encodeURIComponent(documentType)}/rephrase`,
+			payload
 		);
 	},
 };
@@ -183,6 +207,7 @@ export const getDocumentTypes = documentAPI.getTypes;
 export const getDocumentTemplateByType = documentAPI.getTemplateByType;
 export const generateDocument = documentAPI.generate;
 export const getGeneratedDocument = documentAPI.getGenerated;
+export const rephraseDocument = documentAPI.rephrase;
 export const generateUser = authAPI.generateUser;
 export const checkUser = authAPI.checkUser;
 export const startUser = authAPI.startUser;
